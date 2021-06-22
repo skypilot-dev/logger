@@ -1,0 +1,10 @@
+{
+  "name": "@skypilot/logger",
+  "version": "0.1.0",
+  "private": false,
+  "description": "A utility for flexibly logging & displaying events",
+  "repository": "https://github.com/skypilot-dev/logger.git",
+  "license": "MIT",
+  "author": "William Thorsen <william@thorsen.dev>",
+  "main": "lib/index.js"
+}
