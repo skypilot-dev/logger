@@ -38,7 +38,8 @@
     "tracing"
   ],
   "devDependencies": {
-    "@skypilot/toolchain": "^5.2.4-next.6"
+    "@skypilot/toolchain": "^5.2.4-next.6",
+    "type-fest": "^1.2.1"
   },
   "publishConfig": {
     "access": "restricted"
