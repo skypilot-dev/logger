@@ -15,17 +15,17 @@ export type EchoLevel = LogLevel | 'off';
 export type EchoDetail = 'message' | 'event';
 
 export interface Event<TData = any> {
-  id?: Integer | string;
   data?: TData;
+  id?: Integer | string;
   indentLevel?: Integer;
   level: LogLevel;
   message: string;
 }
 
-export interface LoggerOptions {
+export interface EventLogOptions {
+  baseIndentLevel?: Integer;
   echoDetail?: EchoDetail;
   echoLevel?: EchoLevel;
-  baseIndentLevel?: Integer;
   logLevel?: LogLevel;
   type?: string; // default type to assign to new events
 }
@@ -57,7 +57,7 @@ export class EventLog {
 
   private _events: Event[] = [];
 
-  constructor(options: LoggerOptions = {}) {
+  constructor(options: EventLogOptions = {}) {
     const { baseIndentLevel = 0, echoLevel = 'off', echoDetail = 'message', type } = options;
 
     this.baseIndentLevel = baseIndentLevel;
@@ -80,11 +80,11 @@ export class EventLog {
    * @description Merge multiple `EventLog` objects into one
    */
   static merge(eventLogs: EventLog[]): EventLog {
-    const mergedLogger = new EventLog();
+    const mergedEventLog = new EventLog();
     eventLogs.forEach(eventLog => {
-      mergedLogger.addEvents(eventLog.getEvents());
+      mergedEventLog.addEvents(eventLog.getEvents());
     });
-    return mergedLogger;
+    return mergedEventLog;
   }
 
   // Return a positive number if a > b; a negative number if a < b, or a 0 if they are equal. Higher = more severe

@@ -8,7 +8,7 @@ bot:
 release:
   # access = 'public' or 'restricted'
   access: 'public'
-  publish: false
+  publish: true
 prerelease:
   access: 'public'
-  publish: false
+  publish: true
