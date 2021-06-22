@@ -3,8 +3,24 @@
   "version": "0.1.0",
   "private": false,
   "description": "A utility for flexibly logging & displaying events",
-  "repository": "https://github.com/skypilot-dev/logger.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skypilot-dev/logger.git"
+  },
   "license": "MIT",
   "author": "William Thorsen <william@thorsen.dev>",
-  "main": "lib/index.js"
+  "main": "lib/index.js",
+  "bugs": {
+    "url": "https://github.com/skypilot-dev/logger/issues"
+  },
+  "homepage": "https://github.com/skypilot-dev/logger#readme",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "event",
+    "logging",
+    "log",
+    "tracing"
+  ]
 }
