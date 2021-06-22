@@ -71,6 +71,24 @@ console.log(log.hasErrors)
 true
 ```
 
+Add data to every event:
+
+```typescript
+const log = new EventLog({ initialData: { key: 'Always added' } })
+log.info('Event with data', { newKey: 'Added for one event' })
+log.getEvents()
+```
+
+```json
+[
+  {
+    "level": "info",
+    "message": "Event with data",
+    "data": { "key": "Always added", "newKey":  "Added for one event" }
+  }
+]
+```
+
 ---
 
 More to be added

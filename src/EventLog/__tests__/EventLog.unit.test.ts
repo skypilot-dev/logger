@@ -327,7 +327,6 @@ describe('EventLog()', () => {
       eventLog.info<Data>( 'Info event', { data: { key: 'typed value' } });
       eventLog.debug('Debug event');
 
-
       const [firstEvent] = eventLog.getEvents<Data>();
       if (firstEvent) {
         const { key } = firstEvent.data || {};
@@ -360,6 +359,45 @@ describe('EventLog()', () => {
         'Info: Info event',
         'Warn: Warn event',
       ]);
+    });
+
+    it("if initialData is set, should merge it into each event's data", () => {
+      const initialData = {
+        a: 1,
+        b: [1],
+        c: { key: 1 },
+      };
+      const eventLog = new EventLog({ echoLevel: 'off', initialData });
+      eventLog.info('All keys overwritten', { data: { a: 2, b: [2], c: { newKey: 2 } } });
+      eventLog.warn('One key overwritten', { data: { a: 2, d: 'new value' } });
+      const expectedData = [
+        { a: 2, b: [2], c: { newKey: 2 } },
+        { a: 2, b: [1], c: { key: 1 }, d: 'new value' },
+      ];
+      const actualData = eventLog.getEvents().map(event => event.data);
+      expect(actualData).toStrictEqual(expectedData);
+    });
+
+    it('if initialData is set but data is not an object, initialData should be ignored', () => {
+      const initialData = { initialKey: 1 };
+      const eventLog = new EventLog({ echoLevel: 'off', initialData });
+      eventLog.info('Primitive data', { data: 1 });
+      eventLog.warn('Object data', { data: { newKey: 2 } });
+      const expectedData = [
+        1,
+        { initialKey: 1, newKey: 2 },
+      ];
+      const actualData = eventLog.getEvents().map(event => event.data);
+      expect(actualData).toStrictEqual(expectedData);
+    });
+
+    it('if initialData is and data is undefined, data should be initialData', () => {
+      const initialData = {};
+      const eventLog = new EventLog({ echoLevel: 'off', initialData });
+      eventLog.info('No data');
+      const expectedData = [{}];
+      const actualData = eventLog.getEvents().map(event => event.data);
+      expect(actualData).toStrictEqual(expectedData);
     });
 
     it('if there are no messages, should return an empty array', () => {

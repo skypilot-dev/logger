@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import type { ConditionalExcept } from 'type-fest';
 
 type Integer = number;
@@ -22,10 +24,11 @@ export interface Event<TData = any> {
   message: string;
 }
 
-export interface EventLogOptions {
+export interface EventLogOptions<TInitialData = any> {
   baseIndentLevel?: Integer;
   echoDetail?: EchoDetail;
   echoLevel?: EchoLevel;
+  initialData?: TInitialData;
   logLevel?: LogLevel;
   type?: string; // default type to assign to new events
 }
@@ -41,7 +44,7 @@ export interface FilterEventsParams {
 
 export type LogLevel = typeof EventLog.logLevels[number];
 
-export class EventLog {
+export class EventLog<TInitialData = any> {
   static readonly logLevels = [
     'debug',
     'info',
@@ -54,15 +57,17 @@ export class EventLog {
   echoDetail: 'message' | 'event';
   echoLevel: EchoLevel;
   indentLevel: Integer | undefined = undefined;
+  initialData: TInitialData | undefined;
 
   private _events: Event[] = [];
 
-  constructor(options: EventLogOptions = {}) {
-    const { baseIndentLevel = 0, echoLevel = 'off', echoDetail = 'message', type } = options;
+  constructor(options: EventLogOptions<TInitialData> = {}) {
+    const { baseIndentLevel = 0, echoLevel = 'off', echoDetail = 'message', initialData, type } = options;
 
     this.baseIndentLevel = baseIndentLevel;
     this.echoDetail = echoDetail;
     this.echoLevel = echoLevel;
+    this.initialData = initialData;
 
     if (isDefined(type)) {
       this.defaultType = type;
@@ -242,7 +247,7 @@ export class EventLog {
   filterEvents(params: FilterEventsParams): Event[] {
     const { minLevel, maxLevel } = params;
 
-    return this._events.filter(event => (
+    return this.getEvents().filter(event => (
       (
         isUndefined(minLevel)
         || EventLog.logLevels.indexOf(event.level) >= EventLog.logLevels.indexOf(minLevel)
@@ -263,10 +268,23 @@ export class EventLog {
   /* eslint-disable @typescript-eslint/explicit-function-return-type */
   /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
   getEvents(level?: LogLevel | undefined) {
+    const mergedEvents = this.initialData ? this._events.map(event => {
+      const { data } = event;
+      if (isUndefined(data)) {
+        return { ...event, data: this.initialData };
+      }
+      if (isPlainObject(data) && isPlainObject(this.initialData)) {
+        return {
+          ...event,
+          data: { ...this.initialData, ...data }
+        };
+      }
+      return event;
+    }) : this._events;
     if (level === undefined) {
-      return this._events;
+      return mergedEvents;
     }
-    return this._events.filter(message => message.level === level);
+    return mergedEvents.filter(message => message.level === level);
   }
 
   getMessages(level?: LogLevel, options: EventMessageOptions = {}): string[] {
