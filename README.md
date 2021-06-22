@@ -10,3 +10,67 @@ A utility for flexibly tracking & displaying events
 ![next build](https://img.shields.io/github/workflow/status/skypilot-dev/logger/Prerelease?branch=next&label=next%20build)
 ![downloads](https://img.shields.io/npm/dm/@skypilot/logger)
 [![license: ISC](https://img.shields.io/badge/license-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+
+## How to install
+
+```console
+yarn add @skypilot/logger
+```
+
+## How to use
+
+Add events:
+
+```typescript
+const log = new EventLog()
+log.debug('A debug event')
+log.info('An info event')
+log.warn('Something you should know')
+log.error('Uh-oh')
+```
+
+List event messages:
+
+```typescript
+log.getMessages()
+```
+
+```text
+Debug: A debug event
+Info: An info event
+Warn: Something you should know
+Error: Uh-oh
+```
+
+List one level of messages:
+
+```typescript
+log.getMessages('error')
+```
+
+```text
+Error: Uh-oh
+```
+
+Or access the messages directly:
+
+```typescript
+console.log(log.messages.error)
+```
+```text
+Uh-oh
+```
+
+Check for errors:
+
+```typescript
+console.log(log.hasErrors)
+```
+
+```text
+true
+```
+
+---
+
+More to be added
