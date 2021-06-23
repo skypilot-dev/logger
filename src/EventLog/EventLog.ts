@@ -8,6 +8,7 @@ export interface AddEventOptions<TData = any> {
   id?: Integer | string;
   data?: TData;
   echoLevel?: EchoLevel;
+  forceEcho?: boolean; // if true, echo even if the threshold isn't met
   indentLevel?: Integer;
   type?: string;
 }
@@ -184,7 +185,14 @@ export class EventLog<TInitialData = any> {
   }
 
   addEvent<TData>(level: LogLevel, message: string, options: AddEventOptions<TData> = {}): Event {
-    const { id, data, echoLevel = this.echoLevel, indentLevel = this.indentLevel, type = this.defaultType } = options;
+    const {
+      id,
+      data,
+      echoLevel = this.echoLevel,
+      forceEcho = false,
+      indentLevel = this.indentLevel,
+      type = this.defaultType,
+    } = options;
 
     const event = {
       ...(
@@ -198,7 +206,7 @@ export class EventLog<TInitialData = any> {
     };
     this._events.push(event);
 
-    if (EventLog.meetsThreshold(level, echoLevel)) {
+    if (EventLog.meetsThreshold(level, echoLevel) || forceEcho) {
       if (this.echoDetail === 'event') {
         console[level](EventLog.formatEvent(event)); // TODO: Improve formatting; also allow a custom formatter
       } else {
