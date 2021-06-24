@@ -8,7 +8,9 @@ export interface AddEventOptions<TData = any> {
   id?: Integer | string;
   data?: TData;
   echoLevel?: EchoLevel;
+  forceEcho?: boolean; // if true, echo even if the threshold isn't met
   indentLevel?: Integer;
+  occurredAt?: Date | string | Integer; // Date, ISO string, or timestamp in ms
   type?: string;
 }
 
@@ -16,12 +18,15 @@ export type EchoLevel = LogLevel | 'off';
 
 export type EchoDetail = 'message' | 'event';
 
+export type TimestampFormat = 'off' | 'Date' | 'ISOString' | 'milliseconds' | 'seconds';
+
 export interface Event<TData = any> {
   data?: TData;
   id?: Integer | string;
   indentLevel?: Integer;
   level: LogLevel;
   message: string;
+  occurredAt?: Date | string | Integer;
 }
 
 export interface EventLogOptions<TInitialData = any> {
@@ -30,6 +35,7 @@ export interface EventLogOptions<TInitialData = any> {
   echoLevel?: EchoLevel;
   initialData?: TInitialData;
   logLevel?: LogLevel;
+  timestampFormat?: TimestampFormat;
   type?: string; // default type to assign to new events
 }
 
@@ -58,16 +64,25 @@ export class EventLog<TInitialData = any> {
   echoLevel: EchoLevel;
   indentLevel: Integer | undefined = undefined;
   initialData: TInitialData | undefined;
+  timestampFormat: TimestampFormat;
 
   private _events: Event[] = [];
 
   constructor(options: EventLogOptions<TInitialData> = {}) {
-    const { baseIndentLevel = 0, echoLevel = 'off', echoDetail = 'message', initialData, type } = options;
+    const {
+      baseIndentLevel = 0,
+      echoLevel = 'off',
+      echoDetail = 'message',
+      initialData,
+      timestampFormat = 'off',
+      type,
+    } = options;
 
     this.baseIndentLevel = baseIndentLevel;
     this.echoDetail = echoDetail;
     this.echoLevel = echoLevel;
     this.initialData = initialData;
+    this.timestampFormat = timestampFormat;
 
     if (isDefined(type)) {
       this.defaultType = type;
@@ -184,7 +199,15 @@ export class EventLog<TInitialData = any> {
   }
 
   addEvent<TData>(level: LogLevel, message: string, options: AddEventOptions<TData> = {}): Event {
-    const { id, data, echoLevel = this.echoLevel, indentLevel = this.indentLevel, type = this.defaultType } = options;
+    const {
+      id,
+      data,
+      echoLevel = this.echoLevel,
+      forceEcho = false,
+      indentLevel = this.indentLevel,
+      occurredAt = this.timestampFormat === 'off' ? undefined : createTimestamp(this.timestampFormat),
+      type = this.defaultType,
+    } = options;
 
     const event = {
       ...(
@@ -194,11 +217,12 @@ export class EventLog<TInitialData = any> {
       ),
       level,
       message,
+      ...(occurredAt ? { occurredAt } : {}),
       ...omitUndefined({ id, data, type }),
     };
     this._events.push(event);
 
-    if (EventLog.meetsThreshold(level, echoLevel)) {
+    if (EventLog.meetsThreshold(level, echoLevel) || forceEcho) {
       if (this.echoDetail === 'event') {
         console[level](EventLog.formatEvent(event)); // TODO: Improve formatting; also allow a custom formatter
       } else {
@@ -321,6 +345,26 @@ type PlainObject = { [key: string]: unknown } & ({ bind?: never } | { call?: nev
 
 function capitalizeFirstWord(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function createTimestamp(format: 'Date'): Date;
+function createTimestamp(format: 'milliseconds' | 'seconds'): Integer;
+function createTimestamp(format: 'ISOString'): string;
+function createTimestamp(format: Exclude<TimestampFormat, 'off'>): Date | Integer | string;
+
+function createTimestamp(format: TimestampFormat): Date | Integer | string {
+  switch (format) {
+    case 'Date':
+      return new Date();
+    case 'ISOString':
+      return new Date().toISOString();
+    case 'milliseconds':
+      return Date.now();
+    case 'seconds':
+      return Date.now()/1000;
+    default:
+      throw new Error(`Unrecognized timestamp format: '${format}'`);
+  }
 }
 
 /**
